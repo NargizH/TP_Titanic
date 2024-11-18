@@ -1,0 +1,164 @@
+---
+title: "TP_TITANIC"
+author: "Nargiz"
+date: "2024-11-14"
+output: html_document
+---
+```{r}
+
+```
+# Utilisez knit pour générer un rapport en HTML.  
+#Créez un fichier RMarkdown Analyse.Rmd dans le dossier cloné précédemment 
+# Chargez les données TitanicSurvival (disponible dans carData). 
+# Présentez les données vous pouvez chercher TitanicSurvvival dans l’aide de Rstudio
+```{r}
+library(carData)
+df <- TitanicSurvival
+head(TitanicSurvival)
+str(TitanicSurvival)
+```
+
+#Présentez les statistiques descriptives. 
+#statistique desc. de base
+```{r}
+summary(TitanicSurvival)
+```
+#afficher les variable quantitative et qualitative
+```{r}
+quantitatives <- names(df)[sapply(df, is.numeric)]
+qualitatives <- names(df)[sapply(df, is.factor) | sapply(df, is.character)]
+print("Variables quantitatives :")
+print(quantitatives)
+print("Variables qualitatives :")
+print(qualitatives)
+```
+#les satistiques de variable quantitative
+```{r}
+mode_values <- list()
+frequencies <- list()
+total_counts <- list()
+for (var in qualitatives) {
+  mode_value <- names(sort(table(TitanicSurvival[[var]]), decreasing = TRUE)[1])
+  mode_values[[var]] <- mode_value
+  freq_table <- table(TitanicSurvival[[var]])
+  frequencies[[var]] <- freq_table
+   total_counts[[var]] <- length(TitanicSurvival[[var]])
+}
+```
+# Affichage des résultats
+```{r}
+print("Mode des variables qualitatives:")
+print(mode_values)
+
+print("Fréquences des variables qualitatives:")
+print(frequencies)
+
+print("Effectif total des variables qualitatives:")
+print(total_counts)
+```
+#taux de survie 
+```{r}
+table(TitanicSurvival$survived)/nrow(TitanicSurvival)
+```
+#taux de survie par rapport de sex
+```{r}
+table(TitanicSurvival$survived, TitanicSurvival$sex)
+survie_sex <- prop.table(table(TitanicSurvival$survived, TitanicSurvival$sex), 2)
+survie_sex
+```
+# taux de survie par rapport de la classe
+```{r}
+table(TitanicSurvival$survived , TitanicSurvival$passengerClass)
+survie_class <- prop.table(table(TitanicSurvival$survived , TitanicSurvival$passengerClass), 2)
+survie_class
+```
+#Visualisez la répartition des survivants en fonction du sexe et la classe.
+```{r}
+tableau <- table(TitanicSurvival$survived ,TitanicSurvival$sex ,TitanicSurvival$passengerClass )
+tableau
+library(ggplot2)
+ggplot(TitanicSurvival , aes(x = passengerClass , fill = survived)) + 
+geom_bar(position = 'dodge') +
+  facet_wrap(~sex) +
+  labs(title = "Répartition des survivants en Fonction du Sexe et de la Classe" , 
+    x= "Classe du Passager ", 
+    y = " Nombre de Passager" , 
+    fill = "Survie") +
+scale_fill_manual(values = c('no' = "black" , "yes"= "orange") )+
+  theme(panel.grid=element_blank())
+```
+
+
+#Interprétation
+Ce graphique montre la répartition des passagers du Titanic en fonction de leur classe, leur sexe, et leur statut de survie ("yes" pour les survivants et "no" pour les non-survivants). Voici une brève interprétation :
+1. Femmes :
+En 1re classe, une majorité des femmes ont survécu.
+En 2e classe, les survivantes et les non-survivantes sont en proportions similaires.
+En 3e classe, un plus grand nombre de femmes n'ont pas survécu, mais il y a aussi un nombre important de survivantes.
+2. Hommes :
+En 1re et 2e classe, les hommes non-survivants sont largement majoritaires, avec très peu de survivants.
+En 3e classe, la majorité des hommes n'ont pas survécu, et le nombre de survivants est encore plus faible.
+En résumé, les femmes avaient une probabilité plus élevée de survie, en particulier en 1re classe, tandis que les hommes, surtout en 3e classe, avaient un taux de mortalité très élevé.
+
+
+#Représentez l’age en fonction de la variable survived. 
+```{r}
+boxplot(age~survived,data = TitanicSurvival,
+        main = "Répartition de l'âge en fonction de la survie",
+        xlab = "Survie",
+        ylab = "Âge",
+        col = c("darkgreen", "pink"))
+
+```
+
+
+#interpretation
+Ce boxplot illustre la répartition des âges des passagers du Titanic en fonction de leur statut de survie ("no" pour les non-survivants et "yes" pour les survivants). Voici une interprétation concise :
+1. Âge médian :
+L'âge médian des survivants est légèrement inférieur à celui des non-survivants.
+Cela peut indiquer que les passagers plus jeunes avaient une probabilité légèrement plus élevée de survivre.
+2. Dispersion des âges :
+Les survivants et les non-survivants présentent une large gamme d'âges, mais les non-survivants semblent avoir une répartition plus uniforme.
+Il y a des survivants de tous âges, y compris des enfants et des personnes âgées.
+3. Outliers :
+Les points au-dessus des moustaches représentent des âges plus rares (notamment quelques survivants plus âgés).
+En résumé, les jeunes semblent avoir eu un avantage en termes de survie, mais la survie était possible pour toutes les tranches d'âge.
+
+#Représentez l’age en fonction de la variable survived en utilisant deux graphics 
+```{r}
+library(ggplot2)
+ggplot(TitanicSurvival, aes(x = as.factor(survived), y = age, fill = as.factor(survived))) +
+  geom_violin(trim = FALSE, alpha = 0.5, color = "black") +  # Ajout du violon
+  geom_boxplot(width = 0.2, color = "black", alpha = 0.7) +  # Ajout du boxplot
+  labs(title = "Répartition de l'âge en fonction de la survie",
+       x = "Survie (0 = Non, 1 = Oui)",
+       y = "Âge") +
+  scale_fill_manual(values = c("darkgreen", "pink")) +
+  guides(fill = 'none') 
+      
+```
+
+
+#interpretation
+
+Distribution de l'âge des non-survivants (vert) : La majorité des non-survivants se trouve dans une tranche d'âge jeune à moyenne, avec une concentration autour de 25 à 30 ans. Il y a aussi quelques points plus élevés, indiquant des valeurs extrêmes ou des outliers.
+Distribution de l'âge des survivants (rose) : La distribution est également concentrée autour de 25 à 30 ans, mais elle est un peu plus large et moins symétrique que celle des non-survivants, indiquant que des personnes de différents âges ont survécu.
+Comparaison des deux groupes : Les deux groupes ont des âges similaires dans leurs distributions centrales, mais la forme des violons montre des variations mineures dans les densités. Cela pourrait suggérer que l'âge seul n'est pas le facteur le plus déterminant pour la survie dans cet échantillon.
+En résumé, les jeunes adultes semblent représenter une grande partie des passagers, mais l'âge ne semble pas avoir eu un impact majeur sur la survie dans ce cas.
+
+
+#utiliser la library personalisée / je l'ai appelé DICAPRIO
+  
+```{r}
+library(DICAPRIO)
+rose(df)
+survie_sex(df)
+```
+
+
+
+
+
+
+
+
